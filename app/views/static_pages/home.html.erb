@@ -1,3 +1,16 @@
 <% provide :title, 'Home' %>
-<h1>Hello <%= @name %></h1>
-<p>My age is : <%= @age %><p>
+<div class="row">
+  <div class="col-md-12 columns text-center">
+    <img src="https://maps.googleapis.com/maps/api/staticmap?center=Yogyakarta,Indonesia&zoom=12&size=500x200&maptype=roadmap&scale=2">
+  <hr>
+  </div>
+</div>
+<div class="row">
+  <% 8.times do %>
+    <div class="col-md-3 columns">
+      <img src="http://placehold.it/200x150&text=Place%20Image" class="img-thumbnail">
+      <h2>Place Name</h2>
+      <p>Amet nunc urna dis. Diam odio pulvinar placerat pid! Phasellus arcu rhoncus massa. Ut arcu. Mus lectus rhoncus, in augue in aenean augue pellentesque, turpis lectus scelerisque tincidunt sagittis et, magna cum. Et mattis, sit montes, in ultricies urna elit, augue augue. Eu porttitor. Ridiculus, dis natoque turpis, ultricies eros.</p>
+    </div>
+  <% end %>
+</div>
