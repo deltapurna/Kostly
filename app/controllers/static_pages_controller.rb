@@ -1,15 +1,16 @@
 class StaticPagesController < ApplicationController
-  before_action :age
+  before_action :set_age
 
   def home
     @name = params[:name]
-    render 'home2'
   end
 
   def about
   end
 
-  def age
-    @age = params[:age]
-  end
+  private
+
+    def set_age
+      @age = params[:age]
+    end
 end
