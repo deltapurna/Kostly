@@ -101,10 +101,36 @@ Link Github:
 - **TUGAS: Create minimal 10 places di database masing-masing!**
 - **TUGAS 2: Create minimal 10 places lagi di database masing-masing! kali ini menggunakan `seed` file! (Silahkan di google :))**
 
-**VOILA! Sekarang homepage kita selesai dan bisa di akses di <http://localhost:3000>**
-
 ## Displaying Places at Homepage
 - query semua `place` di database di controller `static_pages`
+
+        # app/controllers/static_pages_controller.rb
+        class StaticPagesController < ApplicationController
+          def home
+            @places = Place.all
+          end
+          ...
+        end
+
+- gunakan instance variable `@places` di view template
+
+        <!-- app/views/static_pages/home.html.erb -->
+        ...
+          <!-- looping ke semua place di dalam array @places -->
+          <% @places.each do |place| %>
+            <div class="col-md-3 columns place-item">
+              ...
+              <!-- gunakan place.name -->
+              <h2><%= place.name %></h2>
+              <!-- gunakan place.description dengan truncate helper -->
+              <p><%= truncate place.description, length: 100 %></p>
+              ...
+            </div>
+          <% end %>
+        ...
+
+- **VOILA! Sekarang homepage kita telah menampilkan data dari database dan bisa di akses di <http://localhost:3000>**
+- **TUGAS: Buat query untuk menampilkan hanya 8 most updated place di homepage!**
 
 ## Referensi
 - Rails Guide - Rails Console (<http://guides.rubyonrails.org/command_line.html#rails-console>)

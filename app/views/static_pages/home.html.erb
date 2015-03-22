@@ -6,11 +6,11 @@
   </div>
 </div>
 <div class="row">
-  <% 8.times do %>
+  <% @places.each do |place| %>
     <div class="col-md-3 columns place-item">
       <img src="http://placehold.it/200x150&text=Place%20Image" class="img-thumbnail">
-      <h2>Place Name</h2>
-      <p>Amet nunc urna dis. Diam odio pulvinar placerat pid! Phasellus arcu rhoncus massa. Ut arcu. Mus lectus rhoncus, in augue in aenean augue pellentesque, turpis lectus scelerisque tincidunt sagittis et, magna cum. Et mattis, sit montes, in ultricies urna elit, augue augue. Eu porttitor. Ridiculus, dis natoque turpis, ultricies eros.</p>
+      <h2><%= place.name %></h2>
+      <p><%= truncate place.description, length: 100  %></p>
       <div class="pull-right">
         <img src="http://placehold.it/20x20">
         <small>By: Someone</small>
