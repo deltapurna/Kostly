@@ -144,9 +144,16 @@ Link Github:
 - **VOILA! Sekarang homepage kita telah menampilkan data dari database dan bisa di akses di <http://localhost:3000>**
 - **TUGAS: Buat query untuk menampilkan hanya 8 most updated place di homepage!**
 
+## Notes when deploying to heroku
+- jangan lupa untuk merun migration di heroku `heroku run rake db:migrate`
+- dan merun seed data juga di heroku `heroku run rake db:seed`
+- kita juga bisa mengakses console di server heroku `heroku run console`
+- jika ada error bisa kita cek log dengan `heroku logs`
+
 ## Referensi
 - Rails Guide - Active Record Migrations (<http://guides.rubyonrails.org/active_record_migrations.html>)
 - Rails Guide - Rails Console (<http://guides.rubyonrails.org/command_line.html#rails-console>)
 - Rails Guide - Active Record Basics (<http://guides.rubyonrails.org/active_record_basics.html>)
 - Rails Guide - Active Record Query Interface (<http://guides.rubyonrails.org/active_record_querying.html>)
 - Rails Guide - Seed Data (<http://guides.rubyonrails.org/active_record_migrations.html#migrations-and-seed-data>)
+- Heroku Command (<https://devcenter.heroku.com/articles/getting-started-with-rails4#migrate-your-database>)
