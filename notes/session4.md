@@ -11,10 +11,21 @@ Link Github:
 - menggunakan generator model
 - generator ini membutuhkan nama model dan (optional) field-field yang model ini butuhkan di database
 - `bin/rails generate model place name:string description:text`
-  - akan menggenerate `place.rb` di `app/models` folder
-  - file migration untuk membuat database `places` (lengkap dengan kolom `name` dan `description`)
-  - dan test files
+  + akan menggenerate `place.rb` di `app/models` folder
+  + file migration untuk membuat database `places` (lengkap dengan kolom `name` dan `description`)
+  + dan test files
 - jalankan `bin/rake db:migrate`
+
+### Tentang Migration
+- adalah cara yang mudah dan elegan untuk merubah schema database kita
+- Setiap migration akan membuat versi baru dari schema database kita
+- migration bisa di terapkan di database dengan command `bin/rake db:migrate`
+- kita bisa mengembalikan ke versi sebelumnya dengan `bin/rake db:rollback`
+- rails support berbagai macam syntax untuk manipulasi database, diantaranya:
+  + Membuat table `create_table`
+  + Merubah column `change_column`
+  + Merubah nama column `rename_column`
+  + dan lain sebagainya
 
 ## Introducing Rails Console
 - merupakan tools yang sangat berguna untuk development
@@ -25,11 +36,12 @@ Link Github:
 - di sesi ini kita akan menggunakan `console` untuk berkenalan dengan Active Record
 
 ## Introducing Active Record
-- [Active Record](http://www.martinfowler.com/eaaCatalog/activeRecord.html) was described by Martin Fowler in his book.
+- [Active Record](http://www.martinfowler.com/eaaCatalog/activeRecord.html) dijelaskan oleh Martin Fowler di bukunya.
 - _"An object that wraps a row in a database table or view, encapsulates the database access, and adds domain logic on that data."_
 - beberapa orang juga menyebut pattern ini dengan _ORM_ (Object Relational Mapping)
-- class `Place` <=> Table 'places'
-- object dari class `Place` <=> Row di table `places`
+  + class `Place` <=> Table 'places'
+  + object dari class `Place` <=> Row di table `places`
+  + attribute dari objectnya <=> Column di table `places`
 - menggunakannya cukup membuat class `Place`, dan inherit dari `ActiveRecord::Base`
 
         # app/models/place.rb
@@ -123,7 +135,7 @@ Link Github:
               <!-- gunakan place.name -->
               <h2><%= place.name %></h2>
               <!-- gunakan place.description dengan truncate helper -->
-              <p><%= truncate place.description, length: 100 %></p>
+              <p><%= truncate place.description, length: 50 %></p>
               ...
             </div>
           <% end %>
@@ -133,6 +145,8 @@ Link Github:
 - **TUGAS: Buat query untuk menampilkan hanya 8 most updated place di homepage!**
 
 ## Referensi
+- Rails Guide - Active Record Migrations (<http://guides.rubyonrails.org/active_record_migrations.html>)
 - Rails Guide - Rails Console (<http://guides.rubyonrails.org/command_line.html#rails-console>)
 - Rails Guide - Active Record Basics (<http://guides.rubyonrails.org/active_record_basics.html>)
 - Rails Guide - Active Record Query Interface (<http://guides.rubyonrails.org/active_record_querying.html>)
+- Rails Guide - Seed Data (<http://guides.rubyonrails.org/active_record_migrations.html#migrations-and-seed-data>)
