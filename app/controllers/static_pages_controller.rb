@@ -1,16 +1,8 @@
 class StaticPagesController < ApplicationController
-  before_action :set_age
-
   def home
-    @name = params[:name]
+    @places = Place.order(updated_at: :desc).limit(8)
   end
 
   def about
   end
-
-  private
-
-    def set_age
-      @age = params[:age]
-    end
 end
