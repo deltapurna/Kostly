@@ -1,6 +1,4 @@
 Rails.application.routes.draw do
-  get 'places/index'
-
   get 'home' => 'static_pages#home'
   get 'about', to: 'static_pages#about'
 

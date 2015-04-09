@@ -1,4 +1,16 @@
 <%= form_for @place do |f| %>
+
+  <% if @place.errors.any? %>
+    <div class='alert alert-danger'>
+      <strong><%= pluralize @place.errors.count, 'error' %> prevented place to be submitted </strong>
+      <ul>
+        <% @place.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
   <div class='form-group'>
     <%= f.label :name %>
     <%= f.text_field :name, class: 'form-control' %>

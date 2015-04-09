@@ -14,9 +14,11 @@ class PlacesController < ApplicationController
   def create
     @place = Place.new(place_params)
 
-    @place.save
-
-    redirect_to places_url, notice: 'Place created!'
+    if @place.save
+      redirect_to places_url, notice: 'Place created!'
+    else
+      render :new
+    end
   end
 
   def edit
