@@ -1,0 +1,6 @@
+<h1><%= @user.name %> Profile</h1>
+<h2>Places:</h2>
+<ul>
+  <% @user.places.each do |place| %>
+    <li><%= place.name %></li>
+  <% end %>

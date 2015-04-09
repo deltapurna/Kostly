@@ -3,6 +3,7 @@ Rails.application.routes.draw do
   get 'about', to: 'static_pages#about'
 
   resources :places
+  resources :users
   # get 'places' => 'places#index'
   # get 'places/:id' => 'places#show'
 
