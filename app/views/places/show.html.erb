@@ -1,0 +1,14 @@
+<h2><%= @place.name %></h2>
+<p><em>Posted at: <%= time_ago_in_words @place.created_at %> ago</em></p>
+<div class="row">
+  <div class="columns col-md-3">
+    <img src="http://placehold.it/250x250">
+  </div>
+  <div class="columns col-md-9">
+    <blockquote><small><%= @place.description %></small></blockquote>
+  </div>
+</div>
+<div class="pull-right">
+  <img src="http://placehold.it/20x20">
+  <small>By: Someone</small>
+</div>
