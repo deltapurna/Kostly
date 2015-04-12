@@ -16,3 +16,4 @@ Link Github:
 - Session 3 - [Layouting with Bootstrap](https://github.com/deltapurna/Kostly/blob/master/notes/session3.md)
 - Session 4 - [First Model: Place](https://github.com/deltapurna/Kostly/blob/master/notes/session4.md)
 - Session 5 - [REST Controller for Place](https://github.com/deltapurna/Kostly/blob/master/notes/session5.md)
+- Session 6 - [Model Validations & Associations](https://github.com/deltapurna/Kostly/blob/master/notes/session6.md)
