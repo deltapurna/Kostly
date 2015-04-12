@@ -1,4 +1,9 @@
-<h2><%= @place.name %></h2>
+<% provide :title, @place.name %>
+
+<h2>
+  <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+  <%= @place.name %>
+</h2>
 <p><em>Posted at: <%= time_ago_in_words @place.created_at %> ago</em></p>
 <div class="row">
   <div class="columns col-md-3">
@@ -10,5 +15,5 @@
 </div>
 <div class="pull-right">
   <img src="http://placehold.it/20x20">
-  <small>By: Someone</small>
+  <small>By: <%= @place.user.name %></small>
 </div>

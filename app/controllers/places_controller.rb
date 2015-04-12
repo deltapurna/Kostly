@@ -28,9 +28,11 @@ class PlacesController < ApplicationController
   def update
     @place = Place.find(params[:id])
 
-    @place.update(place_params)
-
-    redirect_to places_url, notice: 'Place updated!'
+    if @place.update(place_params)
+      redirect_to places_url, notice: 'Place updated!'
+    else
+      render :edit
+    end
   end
 
   def destroy

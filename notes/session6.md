@@ -69,6 +69,10 @@ Link Github:
         <% end %>
 
 
+**VOILA! Sekarang mensubmit empty place form akan menampilkan pesan validasi error!**
+
+**TUGAS! handle validasi untuk update place juga!**
+
 ## Associating Place and User
 
 ### Generating 2nd Model: User
@@ -181,7 +185,37 @@ Link Github:
 
 - update view dengan profile user dan list places yang dimiliki `@user`
 
-          ...Coming Soon
+        <!-- app/views/users/show.html.erb -->
+        <h2>
+          <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+          <%= @user.name %>
+        </h2>
+        <div class="row">
+          <div class="columns col-md-5">
+            <div class="row">
+              <div class="columns col-md-3">
+                <img src="http://placehold.it/100x100">
+              </div>
+              <div class="columns col-md-9">
+                <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+                Email: <%= mail_to @user.email %>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-7">
+            <% if @user.places.any? %>
+              <h3>
+                <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+                Places (<%= @user.places.count %>)
+              </h3>
+              <ul>
+                <% @user.places.each do |place| %>
+                  <li><%= link_to place.name, place %></li>
+                <% end %>
+              </ul>
+            <% end %>
+          </div>
+        </div>
 
 **VOILA! Sekarang dengan mengakses <http://localhost:3000/users/1> kita akan melihat profile `user` delta dengan tempat-tempat yang dimilikinya! (gunakan `/users/2` untuk melihat profile user juang)**
 
