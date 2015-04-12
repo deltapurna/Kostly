@@ -115,6 +115,15 @@ Link Github:
             belongs_to :user
           end
 
+- ada sebuah opsi penting untuk relasi `has_many`, yaitu kita bisa menentukan apa yang terjadi dengan `places` yang dimiliki `user` jika usernya didelete dari sistem.
+- biasanya solusinya menggunakan opsi `dependent: :destroy`, yang mendeklarasikan jika `user` di delete, semua `places` yang dimiliki user itu juga haurs di delete
+
+          # app/models/user.rb
+          class User < ActiveRecord::Base
+            ...
+            has_many :places, dependent: :destroy
+          end
+
 ### Additional Active Record Methods after Association
 - mencari places yang dimiliki user tertentu:
   + `user.places` => mengembalikan kumpulan places (array) dengan `user_id` dari `user`
