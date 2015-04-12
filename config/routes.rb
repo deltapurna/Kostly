@@ -1,8 +1,10 @@
 Rails.application.routes.draw do
   get 'home' => 'static_pages#home'
   get 'about', to: 'static_pages#about'
+  get 'sign_up', to: 'users#new'
 
   resources :places
+  resources :users
   # get 'places' => 'places#index'
   # get 'places/:id' => 'places#show'
 

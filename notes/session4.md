@@ -1,4 +1,4 @@
-## Belajar Rails Session 2
+## Belajar Rails Session 4
 # OUR FIRST MODEL: PLACE
 
 Link Heroku:
