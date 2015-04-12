@@ -1,4 +1,4 @@
-## Belajar Rails Session 2
+## Belajar Rails Session 3
 # LAYOUTING WITH BOOTSTRAP
 
 Link Heroku:

@@ -1,4 +1,4 @@
-## Belajar Rails Session 2
+## Belajar Rails Session 5
 # REST CONTROLLER FOR PLACE
 
 Link Heroku:
