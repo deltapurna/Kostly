@@ -3,7 +3,7 @@ class PlacesController < ApplicationController
   before_action :authorize_owner, only: [:edit, :update, :destroy]
 
   def index
-    @places = Place.all
+    @places = Place.page(params[:page]).per(5)
   end
 
   def show

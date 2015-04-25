@@ -54,3 +54,4 @@ end
 gem 'bootstrap-sass'
 gem 'faker'
 gem 'hirb'
+gem 'kaminari'
