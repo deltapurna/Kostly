@@ -14,6 +14,6 @@
   </div>
 </div>
 <div class="pull-right">
-  <img src="http://placehold.it/20x20">
+  <%= gravatar_for @place.user, size: 20 %>
   <small>By: <%= link_to @place.user.name, @place.user %></small>
 </div>

@@ -14,7 +14,7 @@
       <p><em>Posted at: <%= time_ago_in_words place.created_at %> ago</em></p>
       <p><%= truncate place.description, length: 50  %></p>
       <div class="pull-right">
-        <img src="http://placehold.it/20x20">
+        <%= gravatar_for place.user, size: 20 %>
         <small>By: <%= link_to place.user.name, place.user %></small>
       </div>
     </div>
