@@ -1,12 +1,15 @@
 <% provide :title, 'Browse for Places' %>
 
 <h1>Listing Places</h1>
-<%= link_to 'Add Place', new_place_path, class: 'btn btn-primary' %>
+<% if user_logged_in? %>
+  <%= link_to 'Add Place', new_place_path, class: 'btn btn-primary' %>
+<% end %>
 <table class='table table-striped'>
   <thead>
     <tr>
       <th>ID</th>
       <th>Name</th>
+      <th>Posted By</th>
       <th>Description</th>
       <th>Action</th>
     </tr>
@@ -16,12 +19,15 @@
       <tr>
         <td><%= place.id %></td>
         <td><%= place.name %></td>
+        <td><%= link_to place.user.name, place.user %></td>
         <td><%= place.description %></td>
         <td width='30%'>
           <div class='btn-group'>
             <%= link_to 'View', place_path(place), class: 'btn btn-default' %>
-            <%= link_to 'Edit', edit_place_path(place), class: 'btn btn-default' %>
-            <%= link_to 'Delete', place_path(place), class: 'btn btn-default', method: :delete, data: { confirm: 'Are you sure?' } %>
+            <% if user_logged_in? && owned_by?(place.user) %>
+              <%= link_to 'Edit', edit_place_path(place), class: 'btn btn-default' %>
+              <%= link_to 'Delete', place_path(place), class: 'btn btn-default', method: :delete, data: { confirm: 'Are you sure?' } %>
+            <% end %>
           </div>
         </td>
       </tr>

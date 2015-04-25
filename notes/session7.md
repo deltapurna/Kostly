@@ -1,5 +1,5 @@
 ## Belajar Rails Session 7
-# MODEL VALIDATIONS AND ASSOCIATIONS
+# LOGIN AND RESET PASSWORD FUNCTIONALITY
 
 Link Heroku:
 <https://belajarrails2.herokuapp.com>
@@ -7,236 +7,345 @@ Link Heroku:
 Link Github:
 <https://github.com/deltapurna/Kostly/commits/master>
 
-## Model Validations
-- form kita untuk membuat object `place` sudah selesai, tapi sekarang user kita bisa mensubmit apapun bahkan empty string
-- kita bisa mencegah ini dengan menambahkan validasi
-- di rails validasi didefinisikan di model
-- beberapa validasi yang umum digunakan antara lain `presence`, `uniqueness`, `length`, `inclusion` dan `format`
-- kita juga bisa mendefinisikan validasi kita sendiri jika dibutuhkan
-- validasi untuk model `Place`:
-  + validasi `presence` untuk atribut `name` dan `description`
-  + validasi `length` (maksimum 400 karakter) untuk atribut `description`
+## Rails Authentication
+- proses login esensinya adalah memastikan seorang user adalah orang yang benar-benar user tersebut
+- kita bisa menggunakan sebuah kata kunci untuk tujuan ini
+- tapi kita tidak boleh menyimpan kata kunci sebagai _plain text_ di database
+- jika kita sudah berhasil meng-autentikasi seorang user, kita bisa menandai request dari user ini sehingga requestnya terhitung sebagai request dari seorang yang sudah login
 
-            # app/models/place.rb
-            class Place < ActiveRecord::Base
-              validates :name, :description, { presence: true }
-              validates :description, length: { maximum: 400 }
-            end
+### Menggunakan `has_secure_password`
+- method bawaan dari rails untuk menyimpan _password_ secara secure di database
+- method ini bisa di tambahkan di model yang membutuhkan
+- dalam konteks aplikasi kita, kita perlu menambahkan di model `User`
+- method ini mengasumsikan modelnya memiliki kolom bernama `password_digest` di tabel
+- method ini kemudian akan melakukan 3 hal:
+  + menambahkan __virtual__ (tidak ada kolom ini di tabel) atribut dan validasi untuk `password` dan `password_confirmation`
+  + secara otomatis akan menggunakan `bcrypt` untuk meng-hash `password` untuk disimpan sebagai `password_digest` di database
+  + menambahkan method `authenticate`:
+      * `user.authenticate('correctpassword') # return the user if password correct`
+      * `user.authenticate('wrongpassword') # return false if password is wrong`
 
-- kita bisa memastikan validasi kita berjalan di rails console (bisa menggunakan method `valid?` dan `errors`)
+### Menambahkan secure password to model `User`
+- tambahkan kolom `password_digest` ke tabel `users` 
+  + `bin/rails generate migration AddPasswordDigestToUsers password_digest:string`
+  + jalankan dengan `bin/rake db:migrate`
+- tambahkan gem `bcrypt` ke Gemfile
+  
+        # Gemfile
+        gem 'bcrypt', '~> 3.1.7'
+
+- tambahkan `has_secure_password` method
+
+        # app/models/user.rb
+        class User < ActiveRecord::Base
+          ...
+          has_secure_password
+          ...
+        end
+
+- kita bisa mencobanya di console
 
         # bin/rails console
-        p = Place.new
-        p.valid?
-          #=> false
-        p.errors.full_messages
-          #=> ["Name can't be blank", "Description can't be blank"]
-        p.description = 'a' * 401 # karena limitnya adalah 400, kita set sebagai 401
-        p.valid?
-          #=> false
-        p.errors.full_messages
-          #=> ["Name can't be blank", "Description is too long (maximum is 400 characters)"]
+        user = User.new
+        user.password_digest
+          => nil
+        user.password = 'mypassword'
+        user.password_digest
+          => "$2a$10$ot.QTuSW3LAWVs9K32rJ3eGWT7QhLMTnRARUHFDVYQTJVW/F/YoTK"
+        user.authenticate('mypassword')
+          => #<User id: nil, name: nil, email: nil,... ">
+        user.authenticate('wrongpassword')
+          => false
 
-- kemudian kita bisa menghandle apa yang akan kita lakukan jika sebuah model gagal di save di controller kita (save akan return `false` jika validasi gagal)
-- simplenya kita akan menampilkan kembali new place form dengan error messagenya
+### Menggunakan sessions untuk menandai user yang sudah login
+- http ada sebuah protocol yang stateless
+- dengan menggunakan sessions kita bisa menciptakan state di http request
+- session menyerupai hash, key-value pair:
+  + `sessions[:user_id] = user.id # set session`
+  + `sessions[:user_id] # get session value`
+  + `sessions[:user_id] = nil # set to nil (for log out process)`
 
-        # app/controllers/places_controllers.rb
-        class PlacesController < ApplicationController
+### Sessions as resources (login is create session, logout is destroy session)
+- `bin/rails generate controller sessions new`
+- update routes:
+
+        # config/routes.rb
+        Rails.application.routes.draw do
           ...
-          def create
-            @place = current_user.places.build(place_params)
-            if @place.save
-              redirect_to places_url, notice: 'Place created!'
-            else
-              render :new
-            end
-          end
+          get 'sign_in', to: 'sessions#new'
+          delete 'sign_out', to: 'sessions#destroy'
+          ...
+          resources :sessions
           ...
         end
 
-- kemudian kita update view kita dengan memanfaatkan `@place.errors` attribute
+- update views:
 
-        <!-- app/views/places/_form.html.erb -->
-        <% if @place.errors.any? %>
-          <div class='alert alert-danger'>
-            <strong><%= pluralize @place.errors.count, 'error' %> prevented place to be submitted </strong>
-            <ul>
-              <% @place.errors.full_messages.each do |msg| %>
-                <li><%= msg %></li>
-              <% end %>
-            </ul>
+        <!-- app/views/sessions/new.html.erb -->
+        <h2>Sign In</h2>
+        <%= form_tag :sessions do %>
+          <div class='form-group'>
+            <%= label_tag :email %>
+            <%= text_field_tag :email, '', class: 'form-control' %>
           </div>
+          <div class='form-group'>
+            <%= label_tag :password %>
+            <%= password_field_tag :password, '', class: 'form-control' %>
+          </div>
+          <%= submit_tag 'Sign In', class: 'btn btn-primary btn-block' %>
         <% end %>
 
+- update controller to handle login and logout logic:
 
-**VOILA! Sekarang mensubmit empty place form akan menampilkan pesan validasi error!**
+        # app/controllers/sessions_controller.rb
+        class SessionsController < ApplicationController
+          def new
+          end
 
-**TUGAS! handle validasi untuk update place juga!**
-
-## Associating Place and User
-
-### Generating 2nd Model: User
-- menggunakan generator model
-- `bin/rails generate model user name:string email:string`
-  + akan menggenerate `user.rb` di `app/models` folder
-  + file migration untuk membuat database `users` (lengkap dengan kolom `name` dan `email`)
-  + dan test files
-- jalankan `bin/rake db:migrate`
-
-### Setup foreign key column in table places
-- `bin/rails generate migration AddUserIdToPlaces user_id:integer`
-- ini adalah special syntax untuk mengenerate migration untuk menambah column di table
-
-          # db/migrate/xxxxx_add_user_id_to_places.rb
-          class AddUserIdToPlaces < ActiveRecord::Migration
-            def change
-              add_column :places, :user_id, :integer
+          def create
+            # 1. find user by the email
+            user = User.find_by(email: params[:email])
+            if user && user.authenticate(params[:password])
+              # 2. if the user exist and the password correct, set the session
+              session[:user_id] = user.id
+              redirect_to user_url(user), notice: 'Signed in successfully!'
+            else
+              # 3. else back to login form
+              redirect_to sign_in_url, alert: 'Wrong email or password'
             end
           end
 
-- kuncinya ada di format namanya: `AddXXXTo<table_name>` dan column name dan tipe di belakangnya
-- syntax yang mirip juga ada untuk remove column dengan format `RemoveXXXFrom<table_name>`
-- jalankan `bin/rake db:migrate`
-
-### Setup association in model
-- untuk mendeklarasikan bahwa user punya banyak places cukup dengan 1 line
-
-          # app/models/user.rb
-          class User < ActiveRecord::Base
-            ...
-            has_many :places
+          def destroy
+            # to logout simply nullify the session
+            session[:user_id] = nil
+            redirect_to root_url, notice: 'Signed out successfully!'
           end
-
-- dan sebaliknya untuk mendeklarasikan bahwa sebuah place dimiliki oleh seorang user juga cukup dengan 1 line
-
-          # app/models/place.rb
-          class Place < ActiveRecord::Base
-            ...
-            belongs_to :user
-          end
-
-- ada sebuah opsi penting untuk relasi `has_many`, yaitu kita bisa menentukan apa yang terjadi dengan `places` yang dimiliki `user` jika usernya didelete dari sistem.
-- biasanya solusinya menggunakan opsi `dependent: :destroy`, yang mendeklarasikan jika `user` di delete, semua `places` yang dimiliki user itu juga haurs di delete
-
-          # app/models/user.rb
-          class User < ActiveRecord::Base
-            ...
-            has_many :places, dependent: :destroy
-          end
-
-### Additional Active Record Methods after Association
-- mencari places yang dimiliki user tertentu:
-  + `user.places` => mengembalikan kumpulan places (array) dengan `user_id` dari `user`
-  + `user.places.where(name: 'Kosan Cendrawasih'` => bekerja juga dengan `where` query seperti biasa
-  + `user.places.find_by(name: 'Kosan Cendrawasih'` => atau `find_by` query
-- membuat places yang dimiliki user tertentu:
-  + `user.places.create(params)` => create place dengan `user_id` dari `user`
-  + `user.places.build(params)` => inisiasi (seperti `Place.new`) dengan `user_id` dari `user`
-- mencari user yang memiliki place tertentu:
-  + `place.user` => mengembalikan object user yang memiliki place
-
-### Updating Seed Data
-
-        # db/seeds.rb
-        ...
-        user = User.create!(name: 'Delta Purna W.', email: 'd@qiscus.com')
-        user2 = User.create!(name: 'Ashari Juang', email: 'j@qiscus.com')
-
-        # create 20 fake data with user and user2 everytime we run rake db:seed
-        10.times do
-          user.places.create!(
-            name: "Kos #{Faker::Address.city}",
-            description: "#{Faker::Lorem.paragraph(3)}"
-          )
-          user2.places.create!(
-            name: "Kos #{Faker::Address.city}",
-            description: "#{Faker::Lorem.paragraph(3)}"
-          )
         end
 
-- reset migration dengan `bin/rake db:migrate:reset`
-- dan kemudian rerun seed data yang baur `bin/rake db:seed`
+- mendeteksi user yang sudah login menggunakan session
+  + kita letakkan di `application_controller.rb` sehingga bisa diakses di semua controller
+  + kita deklarasikan sebagai helper juga menggunakan `helper_method` method sehingga bisa digunakan di views
 
-## Showing User List of Places in Profile
-- setup validasi untuk user
-  + validasi `presence` untuk atribut `name` dan `email`
-  + validasi `uniqueness` dan `format` untuk atribut `email`
+            # app/controllers/application_controller.rb
+            class ApplicationController < ActionController::Base
+              ...
+              helper_method :user_logged_in?, :current_user
 
-              # app/models/user.rb
-              class User < ActiveRecord::Base
-                VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
-                validates :name, :email, presence: true, length: { maximum: 255 }
-                validates :email, uniqueness: true, format: { with: VALID_EMAIL_REGEX }
-                ...
+              def current_user
+                @current_user ||= User.find_by(id: session[:user_id])
               end
 
-- buat controller baru untuk users dengan generator controller
-- `bin/rails generate controller users show`
-  + => will generate `users_controller.rb` in `app/controllers` folder
-  + dan beberapa file test dan assets
-  + dan juga action dan view `show` (untuk menampilkan 1 user)
-- update routes config file dengan RESTful routing untuk `users`
-
-          # config/routes.rb
-          Rails.application.routes.draw do
-            ...
-            resources :users
-            ...
-          end
-
-- query user dengan `params[:id]` di controller `users`
-
-          class UsersController < ApplicationController
-            def show
-              @user = User.find(params[:id])
+              def user_logged_in?
+                current_user
+              end
             end
-          end
 
-- update view dengan profile user dan list places yang dimiliki `@user`
+- sekarang kita bisa mengupdate navigasi kita menyesuaikan apakah user sudah login atau belum (menggunakan `current_user` dan `user_logged_in?` methods)
 
-        <!-- app/views/users/show.html.erb -->
-        <h2>
-          <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
-          <%= @user.name %>
-        </h2>
-        <div class="row">
-          <div class="columns col-md-5">
-            <div class="row">
-              <div class="columns col-md-3">
-                <img src="http://placehold.it/100x100">
-              </div>
-              <div class="columns col-md-9">
-                <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
-                Email: <%= mail_to @user.email %>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-7">
-            <% if @user.places.any? %>
-              <h3>
-                <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
-                Places (<%= @user.places.count %>)
-              </h3>
-              <ul>
-                <% @user.places.each do |place| %>
-                  <li><%= link_to place.name, place %></li>
+        <!-- app/views/layouts/_header.html.erb -->
+        <nav class="navbar navbar-default navbar-static-top">
+          <div class="container">
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+              <ul class="nav navbar-nav navbar-right">
+                <% if user_logged_in? %>
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Hi <%= current_user.name %> <span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                      <li><%= link_to 'Edit Profile', edit_user_path(current_user) %></li>
+                      <li class="divider"></li>
+                      <li><%= link_to 'Sign Out', sign_out_path, method: :delete %></li>
+                    </ul>
+                  </li>
+                <% else %>
+                  <li><%= link_to 'Sign In', sign_in_path %></li>
+                  <li><%= link_to 'Sign Up', sign_up_path %></li>
                 <% end %>
               </ul>
-            <% end %>
-          </div>
-        </div>
+            </div><!-- /.navbar-collapse -->
+          </div><!-- /.container-fluid -->
+        </nav>
 
-**VOILA! Sekarang dengan mengakses <http://localhost:3000/users/1> kita akan melihat profile `user` delta dengan tempat-tempat yang dimilikinya! (gunakan `/users/2` untuk melihat profile user juang)**
 
-**TUGAS! Buat sign up form dan edit profile form (menggunakan action `new`, `create`, `edit` dan `update` users)**
+## Rails Authorizations
+- sekarang setelah berhasil melakukan authentication, kita bisa melakukan authorization
+- authorization artinya kita mengontrol akses yang bisa dilakukan oleh seorang user
 
-**Plus point jika menggunakan routing `/sign_up` untuk sign up form (bukan `/users/new`)**
+### Hanya logged in `User` yang bisa membuat `Place` baru
+- buat sebuah method di `application_controller.rb` (agar bisa di akses di semua controller)
+  + method ini akan meredirect user ke login form jika belum login
 
-## Notes when deploying to heroku
-- kita perlu mereset database di production dengan `heroku pg:reset DATABASE`
-- kemudian run migration di heroku `heroku run rake db:migrate`
-- dan merun seed data juga di heroku `heroku run rake db:seed`
+            # app/controllers/application_controller.rb
+            class ApplicationController < ActionController::Base
+              ...
+              def authorize
+                unless user_logged_in?
+                  redirect_to sign_in_url,
+                    alert: 'You are not authorized! Please login first!'
+                end
+              end
+            end
+
+- panggil method ini di controller yang ingin kita autorisasi menggunakan `filter`
+  + controller filter adalah method yang bisa kita panggil sebelum, setelah atau ketika mengeksekusi sebuah action
+  + dalam case ini kita ingin memanggil method `authorize` untuk semua action di `places_controller` kecuali `index` dan `show`
+
+            # app/controllers/places_controller.rb
+            class PlacesController < ApplicationController
+              before_action :authorize, except: [:index, :show]
+              ...
+            end
+
+- **VOILA!** sekarang hanya user yang sudah login yang bisa membuat dan mengedit tempat
+- kita bisa mencegah user lebih lanjut di view menggunakan helper yang sudah kita buat
+
+        <!-- app/views/places/index.html.erb -->
+        <h1>Listing Places</h1>
+        <% if user_logged_in? %>
+          <%= link_to 'Add Place', new_place_path, class: 'btn btn-primary' %>
+        <% end %>
+        ...
+              <td width='30%'>
+                <div class='btn-group'>
+                  <%= link_to 'View', place_path(place), class: 'btn btn-default' %>
+                  <% if user_logged_in? %>
+                    <%= link_to 'Edit', edit_place_path(place), class: 'btn btn-default' %>
+                    <%= link_to 'Delete', place_path(place), class: 'btn btn-default', method: :delete, data: { confirm: 'Are you sure?' } %>
+                  <% end %>
+                </div>
+              </td>
+        ...
+
+### `Place` hanya bisa di edit oleh `User` pemiliknya
+**HOMEWORK**
+
+### `User` profile hanya bisa di edit oleh `User` itu sendiri
+**HOMEWORK**
+
+## Sending Reset Password Email
+### Create mailer
+- built in with rails
+- generate mailer with the generator `bin/rails g mailer user_mailer reset_password`
+  + this will generate the mailer,
+  + the test (with preview)
+  + and the text & html email template
+- mailer is like controller. but instead of using render, we user mail method to send email
+- like in controller, we can pass variable from mailer to view template with instance variable
+
+        # app/mailers/user_mailer.rb
+        class UserMailer < ApplicationMailer
+          def reset_password(user_id)
+            @user = User.find(user_id)
+            mail to: @user.email, subject: 'Password Reset Instructions'
+          end
+        end
+
+### Create password reset controller
+- generate with controller generator
+  `bin/rails g controller password_resets`
+- this is a good example that sometimes controller not necessarily tight to a particular model
+- it can be used to handle a specific function
+- for example password reset:
+  + new: to display form to get email to send reset password instruction to
+  + create: the contain the logic to generate token and send email
+  + edit: to display the form to update password (authenticate with token generated before)
+  + update: to contain the logic to update user model with the new password
+
+### Updating `password_resets_controller.rb` to call the mailer
+- we can call mailer from this controller
+
+        # app/controllers/password_resets_controller.rb
+        class PasswordResetsController < ApplicationController
+          ...
+          def create
+            user = User.find_by(email: params[:email])
+            if user
+              user.set_reset_password_token
+              UserMailer.reset_password(user.id).deliver_later
+              redirect_to root_url, notice: 'Please check your email'
+            else
+              redirect_to new_password_reset_url, alert: 'Email not found in our system'
+            end
+          end
+        end
+
+- note: password reset function menggunakan token untuk autentikasi dari link di email
+- code untuk me-generate token sebagai berikut:
+
+        # app/models/user.rb
+        class User < ActiveRecord::Base
+          ...
+          def set_reset_password_token
+            self.reset_password_token = loop do
+              token = SecureRandom.hex
+              break token unless self.class.exists?(reset_password_token: token)
+            end
+            save!
+          end
+        end
+
+### Updating email template
+- by default rails mensupport text dan html email
+- template untuk text email:
+
+        <%# app/views/user_mailer/reset_password.text.erb %>
+        Password Reset Instructions
+
+        Hi <%= @user.name %>,
+
+        Please go to this url to edit your password:
+        <%= edit_password_reset_url(@user, token: @user.reset_password_token) %>
+
+- template untuk html email:
+
+        <%# app/views/user_mailer/reset_password.text.erb %>
+        <h1>Password Reset Instructions</h1>
+
+        <h2>Hi <%= @user.name %>,</h2>
+
+        <p>Please click the following link to edit your password:
+        <%= link_to 'Reset your password', edit_password_reset_url(@user, token: @user.reset_password_token) %></p>
+
+### Setting SMTP configuration
+- in rails we can configure SMTP for each environment
+- sample for gmail:
+
+          # config/environments/development.rb (or in test.rb or in production.rb)
+          config.action_mailer.default_url_options = { host: 'localhost:3000' }
+          config.action_mailer.delivery_method = :smtp
+          config.action_mailer.smtp_settings = {
+            address:              'smtp.gmail.com',
+            port:                 587,
+            domain:               'example.com',
+            user_name:            'your-email@gmail.com',
+            password:             'your-secret-password-here',
+            authentication:       'plain',
+            enable_starttls_auto: true  }
+
+- in heroku can use some addons for email, like sendgrid
+  heroku addons:add sendgrid
+- then add the configuration in production
+
+          # config/environments/production.rb
+          config.action_mailer.raise_delivery_errors = true
+          config.action_mailer.delivery_method = :smtp
+          host = '<your-heroku-app-name>.herokuapp.com'
+          config.action_mailer.default_url_options = { host: host }
+          ActionMailer::Base.smtp_settings = {
+            address: 'smtp.sendgrid.net',
+            port: '587',
+            authentication: :plain,
+            user_name: ENV['SENDGRID_USERNAME'],
+            password: ENV['SENDGRID_PASSWORD'],
+            domain: 'heroku.com',
+            enable_starttls_auto: true
+          }
+
+- **HOMEWORK** Buat controller actions dan views untuk reset password dan edit password serta logic untuk update password (new, edit & update action)
 
 ## Referensi
-- Rails Guide - Active Record Validations (<http://guides.rubyonrails.org/active_record_validations.html>)
-- Rails Guide - Active Record Associations (<http://guides.rubyonrails.org/association_basics.html>)
+- Rails API - Secure Password (<http://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html>)
+- Rails Guide - About Session (<http://guides.rubyonrails.org/action_controller_overview.html#session>)
+- Rails Guide - Controller Filter (<http://guides.rubyonrails.org/action_controller_overview.html#filters>)
+- Rails Guide - Action Mailer Basics (<http://guides.rubyonrails.org/action_mailer_basics.html>)
+- Rails Guide - Action Mailer for Gmail (<http://guides.rubyonrails.org/action_mailer_basics.html#action-mailer-configuration-for-gmail>)
