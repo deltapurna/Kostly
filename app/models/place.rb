@@ -3,4 +3,6 @@ class Place < ActiveRecord::Base
   validates :description, length: { maximum: 400 }
 
   belongs_to :user
+
+  mount_uploader :image, PlaceImageUploader
 end

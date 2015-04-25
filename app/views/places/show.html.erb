@@ -7,7 +7,7 @@
 <p><em>Posted at: <%= time_ago_in_words @place.created_at %> ago</em></p>
 <div class="row">
   <div class="columns col-md-3">
-    <img src="http://placehold.it/250x250">
+    <%= image_tag @place.image.url, size: '250x250', alt: @place.name %>
   </div>
   <div class="columns col-md-9">
     <blockquote><small><%= @place.description %></small></blockquote>

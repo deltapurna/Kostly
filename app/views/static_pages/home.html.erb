@@ -9,7 +9,7 @@
 <div class="row">
   <% @places.each do |place| %>
     <div class="col-md-3 columns place-item">
-      <img src="http://placehold.it/200x150&text=Place%20Image" class="img-thumbnail">
+      <%= image_tag place.image.url, size: '200x150', alt: place.name, class: 'img-thumbnail' %>
       <h2><%= link_to place.name, place %></h2>
       <p><em>Posted at: <%= time_ago_in_words place.created_at %> ago</em></p>
       <p><%= truncate place.description, length: 50  %></p>
