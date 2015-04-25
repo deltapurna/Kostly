@@ -26,12 +26,16 @@ good_words = %w(
 
 user = User.create!(
   name: 'Delta Purna W.',
-  email: 'd@qiscus.com'
+  email: 'd@qiscus.com',
+  password: 'password',
+  password_confirmation: 'password'
 )
 
 user2 = User.create!(
   name: 'Ashari Juang',
-  email: 'j@qiscus.com'
+  email: 'j@qiscus.com',
+  password: 'password',
+  password_confirmation: 'password'
 )
 
 # create 20 fake data everytime we run rake db:seed

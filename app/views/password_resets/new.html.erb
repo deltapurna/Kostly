@@ -1,0 +1,11 @@
+<% provide :title, 'Password Reset' %>
+
+<h2>Reset Your Password</h2>
+<%= form_tag :password_resets do %>
+  <div class='form-group'>
+    <%= label_tag :email %>
+    <%= email_field_tag :email, '', class: 'form-control' %>
+  </div>
+
+  <%= submit_tag 'Send Password Reset Instruction to My Email', class: 'btn btn-primary btn-block' %>
+<% end %>
