@@ -2,19 +2,19 @@
 
 <div class="row">
   <div class="col-md-12 columns text-center">
-    <img src="https://maps.googleapis.com/maps/api/staticmap?center=Yogyakarta,Indonesia&zoom=12&size=500x200&maptype=roadmap&scale=2">
+    <%= image_tag "https://maps.googleapis.com/maps/api/staticmap?center=Yogyakarta,Indonesia&zoom=12&size=500x200&maptype=roadmap&scale=2#{@markers}" %>
   <hr>
   </div>
 </div>
 <div class="row">
   <% @places.each do |place| %>
     <div class="col-md-3 columns place-item">
-      <img src="http://placehold.it/200x150&text=Place%20Image" class="img-thumbnail">
+      <%= image_tag place.image.url, size: '200x150', alt: place.name, class: 'img-thumbnail' %>
       <h2><%= link_to place.name, place %></h2>
       <p><em>Posted at: <%= time_ago_in_words place.created_at %> ago</em></p>
       <p><%= truncate place.description, length: 50  %></p>
       <div class="pull-right">
-        <img src="http://placehold.it/20x20">
+        <%= gravatar_for place.user, size: 20 %>
         <small>By: <%= link_to place.user.name, place.user %></small>
       </div>
     </div>
