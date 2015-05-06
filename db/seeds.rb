@@ -24,6 +24,15 @@ good_words = %w(
   parkir-luas
 )
 
+# Array of street names in Jogja
+street_names = %w(
+  malioboro
+  kartini
+  kaliurang
+  gejayan
+  gotong-royong
+)
+
 user = User.create!(
   name: 'Delta Purna W.',
   email: 'd@qiscus.com',
@@ -33,7 +42,7 @@ user = User.create!(
 
 user2 = User.create!(
   name: 'Ashari Juang',
-  email: 'j@qiscus.com',
+  email: 'juang@qiscus.com',
   password: 'password',
   password_confirmation: 'password'
 )
@@ -50,7 +59,8 @@ user2 = User.create!(
 
   user.places.create!(
     name: "Kos #{Faker::Address.city}",
-    description: "Kosan #{catch_phrases}. #{Faker::Lorem.paragraph(3)}"
+    description: "Kosan #{catch_phrases}. #{Faker::Lorem.paragraph(3)}",
+    address: "Jalan #{street_names.sample} Yogyakarta"
   )
 end
 
@@ -66,6 +76,7 @@ end
 
   user2.places.create!(
     name: "Kos #{Faker::Address.city}",
-    description: "Kosan #{catch_phrases}. #{Faker::Lorem.paragraph(3)}"
+    description: "Kosan #{catch_phrases}. #{Faker::Lorem.paragraph(3)}",
+    address: "Jalan #{street_names.sample} Yogyakarta"
   )
 end
